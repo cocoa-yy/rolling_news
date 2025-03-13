@@ -1,11 +1,12 @@
 import streamlit as st
-from st_keyup import st_keyup
-import mysql.connector  # Ensure this import is present
+import mysql.connector
 from mysql.connector import Error
 import pandas as pd
 from datetime import datetime, timedelta
 
+# Set page layout to wide
 st.set_page_config(layout="wide")
+
 # MySQL 数据库配置
 db_config = {
     'host': '111.119.242.63',
@@ -116,8 +117,11 @@ def main():
     default_groups = [g for g in group_options if g != '股市']
     selected_groups = st.multiselect("筛选分组", options=group_options, default=default_groups)
 
-    # 检索内容或标签：默认空
-    search_query = st_keyup("检索内容或标签", value="", debounce=300, key="search_keyup")
+    # 检索内容或标签：使用 st.text_input，提示按回车确认
+    col_search = st.columns(1)[0]  # Single column for the input
+    with col_search:
+        search_query = st.text_input("检索内容或标签，按回车确认", value="", key="search_input")
+        # The help parameter adds a hint that Enter confirms the search
 
     # 获取所有数据
     all_news_data = fetch_news_with_subjects(start_time, end_time)
@@ -132,7 +136,7 @@ def main():
             news for news in filtered_data
             if belongs_to_groups(news['subjects'], selected_groups)
         ]
-    if search_query:
+    if search_query:  # Apply search filter when Enter is pressed
         filtered_data = [
             news for news in filtered_data
             if (search_query.lower() in news['content'].lower() or
@@ -192,17 +196,17 @@ def main():
         st.info("没有符合条件的数据")
 
     # 分页按钮（上一页和下一页）
-    col_prev, col_spacer, col_next = st.columns([1, 8, 1])  # Adjust the ratios as needed
+    col_prev, col_spacer, col_next = st.columns([1, 8, 1])
     with col_prev:
         if st.button("⬅️ 上一页", disabled=(st.session_state.current_page <= 1), key="prev_page"):
             st.session_state.current_page -= 1
-            st.rerun()  # 强制重新运行以更新页面
+            st.rerun()
     with col_spacer:
-        st.write("")  # Empty column to act as a spacer
+        st.write("")
     with col_next:
         if st.button("下一页 ➡️", disabled=(st.session_state.current_page >= total_pages), key="next_page"):
             st.session_state.current_page += 1
-            st.rerun()  # 强制重新运行以更新页面
+            st.rerun()
 
 if __name__ == "__main__":
     main()
