@@ -1,0 +1,4 @@
+streamlit
+st-keyup
+mysql-connector-python
+pandas
